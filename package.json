@@ -1,0 +1,10 @@
+{
+  "name": "line-cooking-bot-v2",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@line/bot-sdk": "^9.3.0"
+  }
+}
