@@ -8,7 +8,8 @@ async function generateRecipeWithHF(ingredientsText) {
   }
 
   // 日本語が強め＆軽めの指示モデル（無料API対応モデル）
-  const MODEL = "Qwen/Qwen2.5-3B-Instruct";
+  const MODEL = "Qwen/Qwen2.5-1.5B-Instruct";
+
 
   // プロンプト（日本語で丁寧に指定）
   const prompt = `あなたはプロの料理家です。以下の材料で、家庭で作りやすい和食系のレシピを1つ考案してください。
