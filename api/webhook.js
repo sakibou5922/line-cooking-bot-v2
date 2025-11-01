@@ -18,6 +18,28 @@ export default async function handler(req, res) {
 async function handleEvent(event, client) {
   if (event.type !== "message" || event.message.type !== "text") return;
   const text = event.message.text.trim();
+// 🥗 「栄養ログ」→ クイックリプライ3択を表示
+if (/^(栄養ログ|栄養|ログ)$/.test(text)) {
+  return client.replyMessage(event.replyToken, {
+    type: "text",
+    text: "今日の食事はどうだった？",
+    quickReply: {
+      items: [
+        { type: "action", action: { type: "message", label: "完食🍚", text: "完食" } },
+        { type: "action", action: { type: "message", label: "半分🥢", text: "半分" } },
+        { type: "action", action: { type: "message", label: "スキップ🚫", text: "スキップ" } }
+      ]
+    }
+  });
+}
+
+// ✅ 「完食/半分/スキップ」が押されたときの返信
+if (/^(完食|半分|スキップ)$/.test(text)) {
+  return client.replyMessage(event.replyToken, {
+    type: "text",
+    text: `「${text}」で記録したよ📝（保存はこれから）`
+  });
+}
 
   if (/^(今日|献立|メニュー)/.test(text)) {
     return client.replyMessage(event.replyToken, {
