@@ -113,6 +113,20 @@ if (/^(完食|半分|スキップ)$/.test(text)) {
       text: "美容✖ダイエット💖 高タンパク・低脂質レシピを考え中！（実装中）",
     });
   }
+if (/^(AIレシピ|レシピ)/.test(text)) {
+  const ingredients = text.replace(/^(AIレシピ|レシピ)/, "").trim();
+  await client.replyMessage(event.replyToken, {
+    type: "text",
+    text: "🍳 レシピを考えています…（10秒前後お待ちください）"
+  });
+
+  const recipe = await generateRecipeWithHF(ingredients);
+  await client.pushMessage(event.source.userId, {
+    type: "text",
+    text: recipe
+  });
+  return;
+}
 
   if (/^(栄養|ログ)/.test(text)) {
     return client.replyMessage(event.replyToken, {
