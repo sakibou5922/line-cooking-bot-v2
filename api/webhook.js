@@ -1,4 +1,63 @@
 import { Client } from "@line/bot-sdk";
+// ---------- AIレシピ生成（Hugging Face Inference API） ----------
+async function generateRecipeWithHF(ingredientsText) {
+  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey) {
+    console.error("HUGGINGFACE_API_KEY is missing");
+    return "AIキーが設定されていないため、レシピを生成できませんでした。";
+  }
+
+  // 日本語が強め＆軽めの指示モデル（無料API対応モデル）
+  const MODEL = "Qwen/Qwen2.5-3B-Instruct";
+
+  // プロンプト（日本語で丁寧に指定）
+  const prompt = `あなたはプロの料理家です。以下の材料で、家庭で作りやすい和食系のレシピを1つ考案してください。
+- 料理名（1行）
+- 材料（分量）箇条書き
+- 作り方（手順を番号付きで）
+- ヘルシー化のコツ（1行）
+
+材料: ${ingredientsText || "鶏むね肉、ブロッコリー、卵、しょうゆ"}`;
+
+  try {
+    const res = await fetch(`https://api-inference.huggingface.co/models/${encodeURIComponent(MODEL)}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: 320,
+          temperature: 0.7,
+          top_p: 0.95,
+          repetition_penalty: 1.05
+        }
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("HF API error:", res.status, text);
+      return "いまレシピ生成が混み合っています。少し待ってからもう一度お試しください🙏";
+    }
+
+    const data = await res.json();
+    // 返り値の取り出し（モデルにより構造が少し違うことがあるため両対応）
+    const out =
+      Array.isArray(data) && data[0]?.generated_text
+        ? data[0].generated_text
+        : (data.generated_text || JSON.stringify(data));
+
+    // プロンプトが混ざって返るモデルもあるので、最後のレシピ部分を素直に返す
+    return out.replace(prompt, "").trim() || "レシピを生成できませんでした。";
+  } catch (e) {
+    console.error("HF fetch failed:", e);
+    return "レシピ生成に失敗しました。通信環境を確認して再試行してください。";
+  }
+}
+// ---------- /AIレシピ生成 ----------
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(200).send("OK");
